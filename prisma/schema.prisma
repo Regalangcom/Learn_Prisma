@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id      String  @id
+  name    String
+  email   String  @unique
+  phone   String  @unique
+  address String? @db.VarChar(100)
+
+  // sesuaikan dengan nama model 
+  // gunakan [] untuk melakukan relasi
+  comments Comment[]
+  likes    Like[]
+  // loves disini mengguanakn FITUR IMPLICIT
+  loves    product[] @relation("loves")
+  // ---
+  // product  product[]
+
+  @@map("customers")
+}
+
+model Comment {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(200)
+  description String   @db.Text
+  customer_id String   @db.VarChar(100)
+  customer    Customer @relation(fields: [customer_id], references: [id])
+
+  @@map("comments")
+}
+
+model product {
+  id           String     @id
+  name_product String     @db.VarChar(100)
+  price        Int
+  stock        Int        @db.SmallInt
+  category     String
+  likes        Like[]
+  // customer     Customer?  @relation(fields: [customerId], references: [id])
+  // loves disini mengguanakn FITUR IMPLICIT
+  // kelebihan nya tidak perlu membuat model  loves , jika ingin menggunakan table loves maka gunakan CONNECT
+  lovedby      Customer[] @relation("loves")
+  // ---
+  // customerId   String?
+
+  @@map("products")
+}
+
+model Like {
+  customer_id String   @db.VarChar(100)
+  products_id String   @db.VarChar(100)
+  product     product  @relation(fields: [products_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id])
+
+  // sata PK lebih dari 1  styx penulisan nya seperti ini 
+  @@id([customer_id, products_id])
+  @@map("likes")
+}
+
+model Identitas {
+  id         Int    @id @default(autoincrement())
+  name_warga String @db.VarChar(10)
+  alamat     String @db.VarChar(10)
+
+  @@map("indentitas")
+}
